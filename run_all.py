@@ -19,14 +19,17 @@ import time
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-def run_simulation(mode: str):
+def run_simulation(mode: str, gui: bool = False):
     """Run SUMO simulation with the chosen controller mode."""
     print(f"\n{'='*60}")
-    print(f"  🚗  Running SUMO Simulation  |  Mode: {mode.upper()}")
+    gui_label = ' (GUI)' if gui else ''
+    print(f"  🚗  Running SUMO Simulation{gui_label}  |  Mode: {mode.upper()}")
     print(f"{'='*60}\n")
 
     env = os.environ.copy()
     env["SIM_MODE"] = mode
+    if gui:
+        env["SIM_GUI"] = "1"
 
     sim_script = os.path.join(PROJECT_ROOT, "simulation_module", "sim_engine.py")
     result = subprocess.run(
@@ -85,6 +88,11 @@ def main():
         action="store_true",
         help="Run simulation only, no dashboard",
     )
+    parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Open SUMO GUI to visualize the simulation in real-time",
+    )
     args = parser.parse_args()
 
     print("""
@@ -95,7 +103,7 @@ def main():
     """)
 
     if not args.skip_sim:
-        run_simulation(args.mode)
+        run_simulation(args.mode, gui=args.gui)
 
     if not args.sim_only:
         run_dashboard()

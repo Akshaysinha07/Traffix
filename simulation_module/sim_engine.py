@@ -21,15 +21,22 @@ from green_wave import detect_corridors, apply_green_wave, get_corridor_info
 # "adaptive"      → Smart scoring (queue + wait + density)
 # "static"        → Default fixed signal timings
 # "vision_linked" → Adaptive + live vehicle injection from camera
-MODE = "adaptive"
+MODE = os.environ.get("SIM_MODE", "adaptive")
+
+# ── GUI toggle ────────────────────────────────────────────
+# Set SIM_GUI=1 environment variable to open SUMO visual window
+USE_GUI = os.environ.get("SIM_GUI", "0") == "1"
 
 # ── Start SUMO ────────────────────────────────────────────
 if not os.path.exists(config.SIM_CONFIG):
     sys.exit(f"ERROR: Config file not found at {config.SIM_CONFIG}")
 
-sumoCmd = [config.SUMO_BIN, "-c", config.SIM_CONFIG]
+sumo_binary = config.SUMO_GUI_BIN if USE_GUI else config.SUMO_BIN
+sumoCmd = [sumo_binary, "-c", config.SIM_CONFIG]
+if USE_GUI:
+    sumoCmd += ["--start", "--quit-on-end"]  # auto-start, auto-close
 traci.start(sumoCmd)
-print("✅ SUMO Simulation Started")
+print("✅ SUMO Simulation Started" + (" (GUI mode)" if USE_GUI else " (headless)"))
 
 # ── Discover Traffic Lights ───────────────────────────────
 traffic_lights = traci.trafficlight.getIDList()

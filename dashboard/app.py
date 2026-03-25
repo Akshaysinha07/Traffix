@@ -12,8 +12,15 @@ import plotly.express as px
 from datetime import datetime
 
 # ── Project imports ──────────────────────────────────────
+# Graceful import: config may fail on Streamlit Cloud (no SUMO installed)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from config import RESULTS_FILE, VISION_API_PORT, PROJECT_ROOT
+try:
+    from config import RESULTS_FILE, VISION_API_PORT, PROJECT_ROOT
+except SystemExit:
+    # Fallback for Streamlit Cloud deployment (SUMO not available)
+    PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
+    RESULTS_FILE = os.path.join(PROJECT_ROOT, "results.json")
+    VISION_API_PORT = 8000
 
 # ── Page config ──────────────────────────────────────────
 st.set_page_config(
