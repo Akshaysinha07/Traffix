@@ -226,6 +226,9 @@ python -c "import config; print(f'SUMO found at: {config.SUMO_HOME}')"
 
 ### 1. One-Click Launch (Recommended)
 
+**For macOS Users:** You can simply double-click the `Start_Simulation.command` file in the project folder to launch everything instantly!
+
+Or from the terminal:
 ```bash
 # Run simulation + open dashboard in one command
 python run_all.py
@@ -238,7 +241,9 @@ python run_all.py --mode vision_linked  # Camera-connected
 
 ### 2. Visual Simulation (SUMO GUI)
 
-See the traffic flow in real-time with the SUMO graphical interface:
+See the traffic flow in real-time with the SUMO graphical interface (enhanced with the "real world" aesthetic and realistic vehicle rendering):
+
+![SUMO Simulation](sumo_simulation.png)
 
 ```bash
 # Launch with visual simulation window
