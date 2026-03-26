@@ -178,10 +178,6 @@ TrafficFlow-AI-GreenWave/
 │
 ├── 📁 .streamlit/
 │   └── config.toml                 # Streamlit theme & server config
-│
-└── 📁 2026-02-25-00-09-38/         # SUMO network build artifacts
-    ├── build.bat                   # Trip generation script
-    └── ...                         # Simulation outputs
 ```
 
 ---
