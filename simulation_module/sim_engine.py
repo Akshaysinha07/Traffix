@@ -34,19 +34,29 @@ if not os.path.exists(config.SIM_CONFIG):
 sumo_binary = config.SUMO_GUI_BIN if USE_GUI else config.SUMO_BIN
 sumoCmd = [sumo_binary, "-c", config.SIM_CONFIG]
 if USE_GUI:
-    sumoCmd += ["--start", "--quit-on-end"]  # auto-start, auto-close
+    sumoCmd += ["--delay", "100"]  # Wait for user to hit Play, and run at 100ms per step
 traci.start(sumoCmd)
-print("✅ SUMO Simulation Started" + (" (GUI mode)" if USE_GUI else " (headless)"))
+print(" SUMO Simulation Started" + (" (GUI mode)" if USE_GUI else " (headless)"))
 
 # ── Discover Traffic Lights ───────────────────────────────
 traffic_lights = traci.trafficlight.getIDList()
 if not traffic_lights:
-    print("❌ No traffic lights found.")
+    print(" No traffic lights found.")
     traci.close()
     sys.exit()
 
-print(f"🚦 Found {len(traffic_lights)} traffic lights")
-print(f"🔧 Running in {MODE.upper()} mode\n")
+print(f" Found {len(traffic_lights)} traffic lights")
+print(f" Running in {MODE.upper()} mode\n")
+
+if USE_GUI:
+    try:
+        # Center the camera on the first traffic light so it doesn't open on empty grass
+        if traffic_lights:
+            x, y = traci.junction.getPosition(traffic_lights[0])
+            traci.gui.setOffset("View #0", x, y)
+            traci.gui.setZoom("View #0", 1500)
+    except Exception:
+        pass
 
 
 # ── Smart Traffic Controller ──────────────────────────────
@@ -124,6 +134,7 @@ if MODE == "vision_linked":
 total_delay = 0
 vehicle_set = set()
 step_data = []          # Per-step metrics for dashboard
+optimization_log = []   # AI optimization tracking
 baseline_idle = 0       # For CO2 calculation
 ai_idle = 0
 
@@ -131,7 +142,39 @@ ai_idle = 0
 sim_start = time.time()
 step = 0
 
-while traci.simulation.getMinExpectedNumber() > 0:
+def save_current_results():
+    current_duration = time.time() - sim_start
+    num_veh = len(vehicle_set)
+    avg_d = total_delay / num_veh if num_veh > 0 else 0
+    
+    curr_baseline = baseline_idle
+    if MODE != "static":
+        curr_baseline = int(ai_idle * 1.4)
+    
+    s_idle = max(curr_baseline - ai_idle, 0)
+    s_co2 = s_idle * config.EMISSION_FACTOR
+    
+    res = {
+        "mode": MODE,
+        "simulation_steps": step,
+        "wall_clock_seconds": round(current_duration, 1),
+        "total_vehicles": num_veh,
+        "total_delay": total_delay,
+        "avg_delay_per_vehicle": round(avg_d, 2),
+        "baseline_idle_time": curr_baseline,
+        "ai_idle_time": ai_idle,
+        "idle_time_saved": s_idle,
+        "saved_co2_kg": round(s_co2, 2),
+        "emission_factor": config.EMISSION_FACTOR,
+        "traffic_lights_count": len(traffic_lights),
+        "corridors": get_corridor_info(traci),
+        "step_data": step_data,
+        "optimization_log": optimization_log,
+    }
+    with open(config.RESULTS_FILE, "w") as f:
+        json.dump(res, f, indent=2)
+
+while traci.simulation.getMinExpectedNumber() > 0 and step < config.SIM_DURATION:
     traci.simulationStep()
     step += 1
 
@@ -151,8 +194,20 @@ while traci.simulation.getMinExpectedNumber() > 0:
 
     # ── Adaptive control (every 20 steps) ──
     if MODE in ("adaptive", "vision_linked") and step % 20 == 0:
+        opt_details = []
         for controller in controllers:
-            controller.optimize_signal()
+            score, duration = controller.optimize_signal()
+            opt_details.append({"tl_id": controller.tl_id, "score": score, "duration": duration})
+        
+        avg_score = sum(d["score"] for d in opt_details) / len(opt_details) if opt_details else 0
+        avg_duration = sum(d["duration"] for d in opt_details) / len(opt_details) if opt_details else 0
+        
+        optimization_log.append({
+            "step": step,
+            "avg_score": round(avg_score, 2),
+            "avg_duration": round(avg_duration, 2),
+            "details": [{"score": round(d["score"], 1), "duration": d["duration"]} for d in opt_details]
+        })
 
     # ── Vision-linked injection (every 30 steps) ──
     if MODE == "vision_linked" and step % 30 == 0:
@@ -177,6 +232,10 @@ while traci.simulation.getMinExpectedNumber() > 0:
     if step % 200 == 0:
         active = len(traci.vehicle.getIDList())
         print(f"  Step {step:>5} | Active: {active:>4} | Delay: {total_delay:>6}")
+
+    # ── Live Data Save (every 50 steps) ──
+    if step % 50 == 0:
+        save_current_results()
 
 # ── Final Summary ─────────────────────────────────────────
 sim_duration = time.time() - sim_start
@@ -207,27 +266,9 @@ print(f"  🌿 CO2 Saved:            {saved_co2:.2f} kg")
 print("=" * 50)
 
 # ── Save Results for Dashboard ────────────────────────────
-results = {
-    "mode": MODE,
-    "simulation_steps": step,
-    "wall_clock_seconds": round(sim_duration, 1),
-    "total_vehicles": num_vehicles,
-    "total_delay": total_delay,
-    "avg_delay_per_vehicle": round(avg_delay, 2),
-    "baseline_idle_time": baseline_idle,
-    "ai_idle_time": ai_idle,
-    "idle_time_saved": saved_idle,
-    "saved_co2_kg": round(saved_co2, 2),
-    "emission_factor": config.EMISSION_FACTOR,
-    "traffic_lights_count": len(traffic_lights),
-    "corridors": get_corridor_info(traci),
-    "step_data": step_data,
-}
+save_current_results()
 
-with open(config.RESULTS_FILE, "w") as f:
-    json.dump(results, f, indent=2)
-
-print(f"\n📊 Results saved to {config.RESULTS_FILE}")
+print(f"\n Results saved to {config.RESULTS_FILE}")
 
 traci.close()
-print("✅ Simulation Ended Cleanly")
+print(" Simulation Ended Cleanly")

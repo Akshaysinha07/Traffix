@@ -53,17 +53,12 @@ def run_simulation(mode: str, gui: bool = False, live_cam: str = None):
 def run_dashboard():
     """Launch the Streamlit dashboard."""
     print(f"\n{'='*60}")
-    print(f"  📊  Launching Streamlit Dashboard")
+    print(f"  📊  Launching Traffix Dashboard")
     print(f"{'='*60}\n")
 
-    dashboard_script = os.path.join(PROJECT_ROOT, "dashboard", "app.py")
+    dashboard_script = os.path.join(PROJECT_ROOT, "dashboard", "server.py")
     subprocess.Popen(
-        [
-            sys.executable, "-m", "streamlit", "run",
-            dashboard_script,
-            "--server.port", "8501",
-            "--server.headless", "false",
-        ],
+        [sys.executable, dashboard_script],
         cwd=PROJECT_ROOT,
     )
     print("🌐 Dashboard running at: http://localhost:8501")

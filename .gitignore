@@ -23,3 +23,6 @@ Thumbs.db
 # Data
 *.h5
 *.hdf5
+results.json
+simulation_module/test.*
+simulation_module/trips.trips.xml
