@@ -1,13 +1,13 @@
-# 🚦 TrafficFlow AI – GreenWave
+# 🚦 Traffix
 
 > **AI-powered adaptive traffic signal control system** combining real-time computer vision (YOLOv8) with microscopic traffic simulation (SUMO) to reduce congestion, optimize signal timings, and cut CO₂ emissions.
 
-🚀 **Live Demo:** [View Hosted Dashboard](https://trafficflow-ai-greenwave.streamlit.app/)
+🚀 **Live Local Dashboard:** `http://localhost:8501`
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://trafficflow-ai-greenwave.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![SUMO](https://img.shields.io/badge/SUMO-1.20+-green.svg)](https://eclipse.dev/sumo/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-purple.svg)](https://docs.ultralytics.com)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-black.svg)](https://flask.palletsprojects.com/)
 
 ---
 
@@ -22,7 +22,7 @@
   - [One-Click Launch](#1-one-click-launch-recommended)
   - [Visual Simulation (SUMO GUI)](#2-visual-simulation-sumo-gui)
   - [Individual Components](#3-run-individual-components)
-- [Live Dashboard (Free Hosting)](#live-dashboard-free-hosting)
+- [Live Dashboard](#live-dashboard)
 - [Modules Deep Dive](#modules-deep-dive)
 - [API Reference](#api-reference)
 - [Performance Results](#performance-results)
@@ -33,13 +33,13 @@
 
 ## What This Project Does
 
-TrafficFlow AI – GreenWave **solves urban traffic congestion** using two AI-powered modules:
+Traffix **solves urban traffic congestion** using two AI-powered modules:
 
 | Module | What It Does | Technology |
 |--------|-------------|------------|
 | **🎥 Vision Module** | Detects & counts vehicles from live video in real-time | YOLOv8 + FastAPI |
 | **🚗 Simulation Module** | Simulates real road networks and adapts traffic light timings | SUMO + TraCI |
-| **📊 Dashboard** | Visualizes traffic data, CO₂ savings, and congestion maps | Streamlit + Plotly |
+| **📊 Dashboard** | Visualizes traffic data, CO₂ savings, and congestion maps | Flask + Tailwind CSS + Chart.js |
 
 ### The Problem
 Traditional traffic lights use **fixed timers** — they can't adapt to actual traffic conditions. This causes:
@@ -60,7 +60,7 @@ GreenWave uses **AI to dynamically adjust traffic signals** based on:
 
 ```
 ╔═══════════════════════════════════════════════════════════════╗
-║                   TrafficFlow AI – GreenWave                  ║
+║                            Traffix                            ║
 ╠═══════════════════════╦═══════════════════════════════════════╣
 ║                       ║                                       ║
 ║   🎥 VISION MODULE    ║     🚗 SIMULATION MODULE              ║
@@ -81,7 +81,7 @@ GreenWave uses **AI to dynamically adjust traffic signals** based on:
 ║                       ║              ↓                        ║
 ╠═══════════════════════╩═══════════════════════════════════════╣
 ║                                                               ║
-║   📊 STREAMLIT DASHBOARD (results.json → Interactive Charts)  ║
+║   📊 FLASK & TAILWIND DASHBOARD (results.json → Interactive UI)║
 ║   • KPI Cards  • CO₂ Gauge  • Congestion Analysis  • Map     ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
@@ -139,19 +139,19 @@ Road Network → SUMO Simulation → Adaptive AI Controller → Optimized Signal
 
 ### 3️⃣ Dashboard (Visualization)
 
-The Streamlit dashboard reads `results.json` and displays:
+The Flask dashboard reads `results.json` and displays:
 - **KPI Cards** — Total vehicles, CO₂ saved, average delay, simulation runtime
-- **Active vs Idle chart** — Shows traffic flow over time
+- **Active vs Idle chart** — Shows traffic flow over time using Chart.js
 - **CO₂ Gauge** — Percentage reduction vs baseline
 - **Congestion Analysis** — Ratio chart + pie breakdown (high/moderate/clear)
-- **Interactive Map** — Traffic light locations on OpenStreetMap
+- **Interactive Map** — Traffic light locations rendered using Leaflet.js
 
 ---
 
 ## Project Structure
 
 ```
-TrafficFlow-AI-GreenWave/
+Traffix/
 │
 ├── 📄 run_all.py                    # 🚀 One-click launcher (sim + dashboard)
 ├── 📄 config.py                     # ⚙️ Central configuration
@@ -172,14 +172,13 @@ TrafficFlow-AI-GreenWave/
 │   ├── osm.rou.xml                 # Vehicle route definitions
 │   └── map.osm                     # Raw OpenStreetMap data
 │
-├── 📊 dashboard/                    # Streamlit Dashboard
-│   └── app.py                      # Interactive analytics dashboard
+├── 📊 dashboard/                    # Flask & Tailwind Dashboard
+│   ├── server.py                   # Flask Backend API
+│   ├── templates/                  # Jinja HTML UI templates
+│   └── static/                     # CSS & Assets
 │
 ├── 📁 data/
 │   └── traffic.mp4                 # Sample traffic video (~56 MB)
-│
-├── 📁 .streamlit/
-│   └── config.toml                 # Streamlit theme & server config
 ```
 
 ---
@@ -198,8 +197,8 @@ TrafficFlow-AI-GreenWave/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/daman-04/TrafficFlow-AI-GreenWave.git
-cd TrafficFlow-AI-GreenWave
+git clone https://github.com/Akshaysinha07/Traffix.git
+cd Traffix
 
 # 2. Install Git LFS (for large files: model + video)
 git lfs install
@@ -298,33 +297,19 @@ python simulation_module/sim_engine.py
 ```bash
 python run_all.py --skip-sim
 # OR directly:
-streamlit run dashboard/app.py
+python dashboard/server.py
 ```
 
 ---
 
-## Live Dashboard (Free Hosting)
+## Live Dashboard
 
-The dashboard can be **hosted for free** on [Streamlit Community Cloud](https://share.streamlit.io):
+The dashboard runs locally via Flask at `http://localhost:8501`.
 
-### How to Deploy
-
-1. Push this repo to GitHub (already done ✅)
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Sign in with your GitHub account
-4. Click **"New app"** and select:
-   - **Repository:** `daman-04/TrafficFlow-AI-GreenWave`
-   - **Branch:** `main`
-   - **Main file path:** `dashboard/app.py`
-5. Click **"Deploy!"**
-
-The dashboard will be live at a public URL within minutes!
-
-> 💡 **Where does the hosted data come from?**  
+> 💡 **Where does the data come from?**  
 > The dashboard visualizes a **snapshot** of the simulation data saved in `results.json`. 
 > * **The Real:** The road network is a 100% real import of the Delhi road network from OpenStreetMap. The camera code evaluates physical, real-world footage.
 > * **The Simulated:** Since we don't control the physical traffic lights, the vehicles in the dashboard correspond to the highly realistic **SUMO simulated traffic** interacting with the GreenWave AI. 
-> * **Updating the Site:** To update the hosted dashboard, simply run the simulation locally on your laptop, and push the newly generated `results.json` to GitHub!
 
 ---
 
@@ -377,11 +362,15 @@ class TrafficController:
 
 ### 📊 Dashboard
 
-**`dashboard/app.py`** — Streamlit app with:
-- Dark theme with neon accent colors
-- Interactive Plotly charts
-- Folium map with traffic light locations
-- Auto-refresh capability (5-second intervals)
+**`dashboard/server.py`** — Flask backend that:
+- Serves the UI and creates REST API endpoints (`/api/data`, `/api/network`).
+- Parses OpenStreetMap network geometry for Leaflet.js rendering.
+- Manages the dynamic connection with the background SUMO engine.
+
+**`dashboard/templates/index.html`** — Frontend UI that:
+- Implements a stunning Dark theme via Tailwind CSS.
+- Renders live tracking graphs natively in the browser with Chart.js.
+- Refreshes automatically to sync with `results.json` in real time.
 
 ---
 
