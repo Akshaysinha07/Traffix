@@ -2,7 +2,7 @@
 
 > **AI-powered adaptive traffic signal control system** combining real-time computer vision (YOLOv8) with microscopic traffic simulation (SUMO) to reduce congestion, optimize signal timings, and cut CO₂ emissions.
 
-🚀 **Live Local Dashboard:** `https://traffix-bngt.onrender.com`
+🚀 **Live Dashboard:** [https://traffix-bngt.onrender.com](https://traffix-bngt.onrender.com)
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![SUMO](https://img.shields.io/badge/SUMO-1.20+-green.svg)](https://eclipse.dev/sumo/)
@@ -304,7 +304,7 @@ python dashboard/server.py
 
 ## Live Dashboard
 
-The dashboard runs locally via Flask at `http://localhost:8501`.
+The dashboard is deployed live on Render at [https://traffix-bngt.onrender.com](https://traffix-bngt.onrender.com). It can also be run locally via Flask at `http://localhost:8501`.
 
 > 💡 **Where does the data come from?**  
 > The dashboard visualizes a **snapshot** of the simulation data saved in `results.json`. 
