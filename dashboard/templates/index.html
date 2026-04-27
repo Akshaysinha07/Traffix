@@ -632,7 +632,7 @@
     // Mode Selector Logic
     let selectedMode = "adaptive";
     document.querySelectorAll('input[name="sim_mode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
+        radio.addEventListener('change', async (e) => {
             selectedMode = e.target.value;
             document.querySelectorAll('.mode-selector span').forEach(span => {
                 span.classList.remove('text-primary');
@@ -640,6 +640,30 @@
             });
             e.target.nextElementSibling.classList.add('text-primary');
             e.target.nextElementSibling.classList.remove('text-slate-400');
+            
+            // Auto-launch simulation on mode change
+            const btn = document.getElementById("launch-sim-btn");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Switching...`;
+            btn.classList.remove('bg-emerald-500');
+            btn.classList.add('bg-primary');
+            
+            try {
+                const res = await fetch("/api/launch_sim", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ mode: selectedMode })
+                });
+                if(res.ok) {
+                    btn.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Live`;
+                    btn.classList.replace('bg-primary', 'bg-emerald-500');
+                } else {
+                    btn.innerHTML = originalText;
+                }
+            } catch(error) {
+                alert("Failed to switch simulation mode");
+                btn.innerHTML = originalText;
+            }
         });
     });
 
